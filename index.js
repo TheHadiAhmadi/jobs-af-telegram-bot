@@ -210,10 +210,10 @@ function toTelegramMessage(o) {
     o.summary,
     ``,
     `*Required Skills:*`,
-    o.skillsRequired.map((s) => `- #${s}`).join("\n"),
+    o.skillsRequired.map((s) => `- ${s.replace(/_/g, ' ')}`).join("\n"),
     ``,
     `*Optional Skills:*`,
-    o.skillsOptional.map((s) => `- #${s}`).join("\n"),
+    o.skillsOptional.map((s) => `- #${s.replace(/_/g, ' ')}`).join("\n"),
   ].join("\n");
 }
 
