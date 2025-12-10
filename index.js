@@ -7,13 +7,13 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 function getSubscribers() {
-  console.log('getSubscribers')
+  console.log("getSubscribers");
 
   return JSON.parse(readFileSync("./data/subscribers.json", "utf-8"));
 }
 
 function saveSubscribers(arr) {
-  console.log('saveSubscribers', arr)
+  console.log("saveSubscribers", arr);
   writeFileSync("./data/subscribers.json", JSON.stringify(arr, null, 2));
 }
 
@@ -167,10 +167,16 @@ async function checkSiteData() {
         const genderMatch = job.gender === "any" || job.gender === user.gender;
 
         if (fieldMatch && locationMatch && genderMatch) {
-          const message = toTelegramMessage(job);
-          await sendTelegramMessage(user.chatId, message);
+          user.sentJobs = user.sentJobs || [];
+          if (!user.sentJobs.includes(job.slug)) {
+            const message = toTelegramMessage(job);
+            await sendTelegramMessage(user.chatId, message);
+            user.sentJobs.push(job.slug);
+          }
         }
       }
+
+      saveSubscribers(subs);
     } catch (err) {
       console.log(err);
     }
@@ -205,7 +211,7 @@ function toTelegramMessage(o) {
 }
 
 async function sendTelegramMessage(chatId, text, replyMarkup) {
-  console.log('send telegram message', chatId, text)
+  console.log("send telegram message", chatId, text);
   console.log(TELEGRAM_API);
 
   await fetch(`${TELEGRAM_API}/sendMessage`, {
@@ -235,13 +241,13 @@ async function editTelegramMessage(chatId, messageId, text) {
 
 app.post("/telegram", async (req, res) => {
   const update = req.body;
-  console.log('new update from telegram: ', update)
+  console.log("new update from telegram: ", update);
   // if (!update.message) return res.json({ ok: true });
 
   const isCallback = !!update.callback_query;
   const isMessage = !!update.message;
 
-  console.log({isCallback, isMessage})
+  console.log({ isCallback, isMessage });
   if (!isCallback && !isMessage) return res.json({ ok: true });
 
   if (isCallback) {
@@ -249,11 +255,11 @@ app.post("/telegram", async (req, res) => {
     const chatId = update.callback_query.message.chat.id;
     const msgId = update.callback_query.message.message_id;
 
-    console.log('is callback: ', {data, chatId, msgId})
+    console.log("is callback: ", { data, chatId, msgId });
     let subs = getSubscribers();
     let user = subs.find((x) => x.chatId === chatId);
 
-    console.log('user: ', user)
+    console.log("user: ", user);
 
     if (data === "start_yes") {
       if (!user) {
@@ -291,16 +297,15 @@ app.post("/telegram", async (req, res) => {
   }
 
   if (isMessage) {
-    
     const chatId = update.message.chat.id;
     const text = (update.message.text || "").trim();
-    
-    console.log('is message: ', {chatId, text})
-    
+
+    console.log("is message: ", { chatId, text });
+
     let subs = getSubscribers();
     let user = subs.find((x) => x.chatId === chatId);
 
-    console.log({user, subs})
+    console.log({ user, subs });
 
     if (text === "/start") {
       if (!user) {
@@ -358,8 +363,12 @@ app.post("/telegram", async (req, res) => {
       const top5 = matchingJobs.slice(0, 5);
 
       for (let job of top5) {
-        const message = toTelegramMessage(job);
-        await sendTelegramMessage(chatId, message);
+        user.sentJobs = user.sentJobs || [];
+        if (!user.sentJobs.includes(job.slug)) {
+          const message = toTelegramMessage(job);
+          await sendTelegramMessage(chatId, message);
+          user.sentJobs.push(job.slug);
+        }
       }
     }
 
@@ -400,7 +409,7 @@ function run() {
   checkSiteData();
   setInterval(() => {
     checkSiteData();
-  }, 24 * 1000 * 60 * 60); // everyday
+  }, 1 * 1000 * 60 * 60); // every hour
 }
 
 run();
