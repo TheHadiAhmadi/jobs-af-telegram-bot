@@ -3,8 +3,8 @@ import OpenAI from "openai";
 import "dotenv/config";
 import express from "express";
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 function getSubscribers() {
   console.log('getSubscribers')
@@ -207,7 +207,7 @@ function toTelegramMessage(o) {
 async function sendTelegramMessage(chatId, text, replyMarkup) {
   console.log('send telegram message', chatId, text)
   console.log(TELEGRAM_API);
-  
+
   await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
