@@ -7,10 +7,13 @@ const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 
 function getSubscribers() {
+  console.log('getSubscribers')
+
   return JSON.parse(readFileSync("./data/subscribers.json", "utf-8"));
 }
 
 function saveSubscribers(arr) {
+  console.log('saveSubscribers', arr)
   writeFileSync("./data/subscribers.json", JSON.stringify(arr, null, 2));
 }
 
@@ -202,7 +205,9 @@ function toTelegramMessage(o) {
 }
 
 async function sendTelegramMessage(chatId, text, replyMarkup) {
-  console.log('send telegram message', text)
+  console.log('send telegram message', chatId, text)
+  console.log(TELEGRAM_API);
+  
   await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
