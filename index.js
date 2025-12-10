@@ -344,9 +344,17 @@ app.post("/telegram", async (req, res) => {
           readFileSync(`./data/jobs/${jobItem.slug}.json`, "utf-8")
         ).summarized;
 
-        const fieldMatch = jobData.educationFields.some((f) =>
-          user.fields.includes(f)
-        );
+        const userFields = user.fields.map(f => f.toLowerCase());
+        const jobFields = [
+          ...jobData.educationFields.map(f => f.toLowerCase()), 
+          ...jobData.skillsRequired.map(f => f.toLowerCase())
+        ];
+        const jobSummary = jobData.summary.toLowerCase(); // assuming jobData.summary exists
+
+
+        const fieldMatch = jobFields.some((f) =>
+          userFields.includes(f)
+        ) || userFields.some(uf => jobSummary.includes(uf));
         const locationMatch =
           jobData.locations === "any" ||
           jobData.locations.some((l) => user.locations.includes(l));
