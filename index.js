@@ -152,11 +152,15 @@ async function checkSiteData() {
       );
       // notify
       const subs = getSubscribers();
+
+      const job = structuredJob;
+      const message = toTelegramMessage(job);
+      await sendTelegramMessage(TELEGRAM_CHANNEL_ID, message)
+      
       for (let user of subs) {
         if (!user.wantsDaily) continue; // skip users who opted out
         if (!user.fields || !user.locations || !user.gender) continue; // skip incomplete prefs
 
-        const job = structuredJob;
         // const userFields = user.fields.map((f) => f.toLowerCase());
         // const jobFields = [
         //   ...jobData.educationFields.map((f) => f.toLowerCase()),
@@ -177,7 +181,6 @@ async function checkSiteData() {
           if (!user.sentJobs.includes(job.slug)) {
             const message = toTelegramMessage(job);
             await sendTelegramMessage(user.chatId, message);
-            await sendTelegramMessage(TELEGRAM_CHANNEL_ID, message);
             user.sentJobs.push(job.slug);
           }
         }
