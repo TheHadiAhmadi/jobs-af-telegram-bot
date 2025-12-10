@@ -236,7 +236,7 @@ async function editTelegramMessage(chatId, messageId, text) {
 app.post("/telegram", async (req, res) => {
   const update = req.body;
   console.log('new update from telegram: ', update)
-  if (!update.message) return res.json({ ok: true });
+  // if (!update.message) return res.json({ ok: true });
 
   const isCallback = !!update.callback_query;
   const isMessage = !!update.message;
