@@ -63,7 +63,7 @@ type ProvinceName = string;
     summary: string (3 line summary of the job descriptions),
     duration: 'unspecified' | string,
     educationDegree: 'bachelor' | 'master' | '12grade' | 'any',
-    educationFields: strings (computer science, software engineering, ...),
+    educationFields: [string] (computer science, software engineering, ...),
     experienceYears: string (use 0 if experience is not required, '2 years' | '1-3 years' | ...),
     englishRequired: bool (only if english language is 100% required),
     skillsRequired: [string] (list of required skills as camel_case),
