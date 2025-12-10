@@ -4,6 +4,7 @@ services:
     container_name: jobsaf-bot
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHANNEL_ID: ${TELEGRAM_CHANNEL_ID}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL}
     volumes:

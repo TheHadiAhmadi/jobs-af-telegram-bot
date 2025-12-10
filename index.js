@@ -4,6 +4,7 @@ import "dotenv/config";
 import express from "express";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 function getSubscribers() {
@@ -156,21 +157,27 @@ async function checkSiteData() {
         if (!user.fields || !user.locations || !user.gender) continue; // skip incomplete prefs
 
         const job = structuredJob;
+        // const userFields = user.fields.map((f) => f.toLowerCase());
+        // const jobFields = [
+        //   ...jobData.educationFields.map((f) => f.toLowerCase()),
+        //   ...jobData.skillsRequired.map((f) => f.toLowerCase()),
+        // ];
+        // const jobSummary = jobData.summary.toLowerCase(); // assuming jobData.summary exists
 
-        // Simple matching: field, location, gender
-        const fieldMatch = job.educationFields.some((f) =>
-          user.fields.includes(f)
-        );
+        // const fieldMatch =
+        //   jobFields.some((f) => userFields.includes(f)) ||
+        //   userFields.some((uf) => jobSummary.includes(uf));
         const locationMatch =
           job.locations === "any" ||
           job.locations.some((l) => user.locations.includes(l));
         const genderMatch = job.gender === "any" || job.gender === user.gender;
 
-        if (fieldMatch && locationMatch && genderMatch) {
+        if (locationMatch && genderMatch) {
           user.sentJobs = user.sentJobs || [];
           if (!user.sentJobs.includes(job.slug)) {
             const message = toTelegramMessage(job);
             await sendTelegramMessage(user.chatId, message);
+            await sendTelegramMessage(TELEGRAM_CHANNEL_ID, message);
             user.sentJobs.push(job.slug);
           }
         }
@@ -203,10 +210,10 @@ function toTelegramMessage(o) {
     o.summary,
     ``,
     `*Required Skills:*`,
-    o.skillsRequired.map((s) => `- ${s}`).join("\n"),
+    o.skillsRequired.map((s) => `- #${s}`).join("\n"),
     ``,
     `*Optional Skills:*`,
-    o.skillsOptional.map((s) => `- ${s}`).join("\n"),
+    o.skillsOptional.map((s) => `- #${s}`).join("\n"),
   ].join("\n");
 }
 
@@ -344,24 +351,23 @@ app.post("/telegram", async (req, res) => {
           readFileSync(`./data/jobs/${jobItem.slug}.json`, "utf-8")
         ).summarized;
 
-        const userFields = user.fields.map(f => f.toLowerCase());
-        const jobFields = [
-          ...jobData.educationFields.map(f => f.toLowerCase()), 
-          ...jobData.skillsRequired.map(f => f.toLowerCase())
-        ];
-        const jobSummary = jobData.summary.toLowerCase(); // assuming jobData.summary exists
+        // const userFields = user.fields.map((f) => f.toLowerCase());
+        // const jobFields = [
+        //   ...jobData.educationFields.map((f) => f.toLowerCase()),
+        //   ...jobData.skillsRequired.map((f) => f.toLowerCase()),
+        // ];
+        // const jobSummary = jobData.summary.toLowerCase(); // assuming jobData.summary exists
 
-
-        const fieldMatch = jobFields.some((f) =>
-          userFields.includes(f)
-        ) || userFields.some(uf => jobSummary.includes(uf));
+        // const fieldMatch =
+        //   jobFields.some((f) => userFields.includes(f)) ||
+        //   userFields.some((uf) => jobSummary.includes(uf));
         const locationMatch =
           jobData.locations === "any" ||
           jobData.locations.some((l) => user.locations.includes(l));
         const genderMatch =
           jobData.gender === "any" || jobData.gender === user.gender;
 
-        if (fieldMatch && locationMatch && genderMatch) {
+        if (locationMatch && genderMatch) {
           matchingJobs.push(jobData);
         }
       }
