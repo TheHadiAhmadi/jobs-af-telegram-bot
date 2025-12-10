@@ -137,35 +137,39 @@ async function checkSiteData() {
   );
   for (let newItem of newItems) {
     // read full content
-    const content = await getJobDescription(newItem.slug);
-    const structuredJob = await getStructuredJobData(content);
-    content.summarized = structuredJob;
+    try {
+      const content = await getJobDescription(newItem.slug);
+      const structuredJob = await getStructuredJobData(content);
+      content.summarized = structuredJob;
 
-    writeFileSync(
-      "./data/jobs/" + newItem.slug + ".json",
-      JSON.stringify(content, null, 4)
-    );
-    // notify
-    const subs = getSubscribers();
-    for (let user of subs) {
-      if (!user.wantsDaily) continue; // skip users who opted out
-      if (!user.fields || !user.locations || !user.gender) continue; // skip incomplete prefs
-
-      const job = structuredJob;
-
-      // Simple matching: field, location, gender
-      const fieldMatch = job.educationFields.some((f) =>
-        user.fields.includes(f)
+      writeFileSync(
+        "./data/jobs/" + newItem.slug + ".json",
+        JSON.stringify(content, null, 4)
       );
-      const locationMatch =
-        job.locations === "any" ||
-        job.locations.some((l) => user.locations.includes(l));
-      const genderMatch = job.gender === "any" || job.gender === user.gender;
+      // notify
+      const subs = getSubscribers();
+      for (let user of subs) {
+        if (!user.wantsDaily) continue; // skip users who opted out
+        if (!user.fields || !user.locations || !user.gender) continue; // skip incomplete prefs
 
-      if (fieldMatch && locationMatch && genderMatch) {
-        const message = toTelegramMessage(job);
-        await sendTelegramMessage(user.chatId, message);
+        const job = structuredJob;
+
+        // Simple matching: field, location, gender
+        const fieldMatch = job.educationFields.some((f) =>
+          user.fields.includes(f)
+        );
+        const locationMatch =
+          job.locations === "any" ||
+          job.locations.some((l) => user.locations.includes(l));
+        const genderMatch = job.gender === "any" || job.gender === user.gender;
+
+        if (fieldMatch && locationMatch && genderMatch) {
+          const message = toTelegramMessage(job);
+          await sendTelegramMessage(user.chatId, message);
+        }
       }
+    } catch (err) {
+      console.log(err);
     }
   }
 }
