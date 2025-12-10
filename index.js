@@ -202,6 +202,7 @@ function toTelegramMessage(o) {
 }
 
 async function sendTelegramMessage(chatId, text, replyMarkup) {
+  console.log('send telegram message', text)
   await fetch(`${TELEGRAM_API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -235,6 +236,7 @@ app.post("/telegram", async (req, res) => {
   const isCallback = !!update.callback_query;
   const isMessage = !!update.message;
 
+  console.log({isCallback, isMessage})
   if (!isCallback && !isMessage) return res.json({ ok: true });
 
   if (isCallback) {
@@ -242,8 +244,11 @@ app.post("/telegram", async (req, res) => {
     const chatId = update.callback_query.message.chat.id;
     const msgId = update.callback_query.message.message_id;
 
+    console.log('is callback: ', {data, chatId, msgId})
     let subs = getSubscribers();
     let user = subs.find((x) => x.chatId === chatId);
+
+    console.log('user: ', user)
 
     if (data === "start_yes") {
       if (!user) {
@@ -281,11 +286,16 @@ app.post("/telegram", async (req, res) => {
   }
 
   if (isMessage) {
+    
     const chatId = update.message.chat.id;
     const text = (update.message.text || "").trim();
-
+    
+    console.log('is message: ', {chatId, text})
+    
     let subs = getSubscribers();
     let user = subs.find((x) => x.chatId === chatId);
+
+    console.log({user, subs})
 
     if (text === "/start") {
       if (!user) {
@@ -293,6 +303,7 @@ app.post("/telegram", async (req, res) => {
         subs.push(user);
         saveSubscribers(subs);
       }
+
       await sendTelegramMessage(
         chatId,
         "Do you want to receive daily matching job notifications?",
