@@ -146,6 +146,7 @@ async function checkSiteData() {
       JSON.stringify(content, null, 4)
     );
     // notify
+    const subs = getSubscribers();
     for (let user of subs) {
       if (!user.wantsDaily) continue; // skip users who opted out
       if (!user.fields || !user.locations || !user.gender) continue; // skip incomplete prefs
@@ -168,8 +169,6 @@ async function checkSiteData() {
     }
   }
 }
-
-// await checkSiteData();
 
 function toTelegramMessage(o) {
   const b = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -302,6 +301,45 @@ app.post("/telegram", async (req, res) => {
         }
       );
       return res.json({ ok: true });
+    } else if (text === "/suggest") {
+      if (!user || !user.fields || !user.locations || !user.gender) {
+        await sendTelegramMessage(
+          chatId,
+          "Please set your preferences first using /start."
+        );
+        return res.json({ ok: true });
+      }
+
+      const allJobs = JSON.parse(readFileSync("./data/jobs.json", "utf-8"));
+      const matchingJobs = [];
+
+      for (let jobItem of allJobs) {
+        const jobData = JSON.parse(
+          readFileSync(`./data/jobs/${jobItem.slug}.json`, "utf-8")
+        ).summarized;
+
+        const fieldMatch = jobData.educationFields.some((f) =>
+          user.fields.includes(f)
+        );
+        const locationMatch =
+          jobData.locations === "any" ||
+          jobData.locations.some((l) => user.locations.includes(l));
+        const genderMatch =
+          jobData.gender === "any" || jobData.gender === user.gender;
+
+        if (fieldMatch && locationMatch && genderMatch) {
+          matchingJobs.push(jobData);
+        }
+      }
+
+      matchingJobs.sort((a, b) => b.remainingDays - a.remainingDays); // optional sorting
+
+      const top5 = matchingJobs.slice(0, 5);
+
+      for (let job of top5) {
+        const message = toTelegramMessage(job);
+        await sendTelegramMessage(chatId, message);
+      }
     }
 
     if (user && user.awaitingPreferences) {
