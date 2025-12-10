@@ -156,7 +156,7 @@ async function checkSiteData() {
       const job = structuredJob;
       const message = toTelegramMessage(job);
       await sendTelegramMessage(TELEGRAM_CHANNEL_ID, message)
-      
+
       for (let user of subs) {
         if (!user.wantsDaily) continue; // skip users who opted out
         if (!user.fields || !user.locations || !user.gender) continue; // skip incomplete prefs
@@ -228,7 +228,7 @@ async function sendTelegramMessage(chatId, text, replyMarkup) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      chat_id: chatId,
+      chat_id: +chatId,
       text,
       parse_mode: "Markdown",
       reply_markup: replyMarkup || undefined,
