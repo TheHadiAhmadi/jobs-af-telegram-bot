@@ -678,7 +678,7 @@ async function checkWazifahaData() {
 
       console.log(`Structuring data for: ${slug}`);
       const structuredJob = await getStructuredJobData(aiContext);
-      structuredJob = url
+      structuredJob.url = url
       
 
       // Save the full detailed object to a separate file
