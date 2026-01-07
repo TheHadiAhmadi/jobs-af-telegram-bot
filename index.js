@@ -215,7 +215,19 @@ async function loadWazifahaData() {
       const url = "https://wazifaha.org?page=" + page;
       console.log(`Fetching: ${url}`);
       
-      const html = await fetch(url).then((res) => res.text());
+      const headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      }
+
+      const response = await fetch(url, {headers})
+
+      if (!response.ok) {
+        console.error(`❌ Request Failed! Status: ${response.status} ${response.statusText}`);
+        break;
+      }
+
+      const html = await response.text();
       const $ = cheerio.load(html);
 
       const total = Number($('h2').text().split(' ')[0])
